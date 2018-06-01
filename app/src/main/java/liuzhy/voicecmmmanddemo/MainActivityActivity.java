@@ -194,6 +194,7 @@ public class MainActivityActivity extends AppCompatActivity {
 
         @Override
         public void onBeginOfSpeech() {
+            Log.e("wakeup","begin");
         }
 
 
