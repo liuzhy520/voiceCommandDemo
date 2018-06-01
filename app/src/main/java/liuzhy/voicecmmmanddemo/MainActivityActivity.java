@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Environment;
+import android.os.Handler;
 import android.os.IBinder;
 import android.os.PowerManager;
 import android.os.RemoteException;
@@ -17,10 +18,14 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.iflytek.cloud.ErrorCode;
+import com.iflytek.cloud.InitListener;
+import com.iflytek.cloud.RecognizerListener;
+import com.iflytek.cloud.RecognizerResult;
 import com.iflytek.cloud.RequestListener;
 import com.iflytek.cloud.SpeechConstant;
 import com.iflytek.cloud.SpeechError;
 import com.iflytek.cloud.SpeechEvent;
+import com.iflytek.cloud.SpeechRecognizer;
 import com.iflytek.cloud.SpeechUtility;
 import com.iflytek.cloud.VoiceWakeuper;
 import com.iflytek.cloud.util.FileDownloadListener;
@@ -32,6 +37,8 @@ import com.iflytek.speech.aidl.IWakeuper;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
+
+import liuzhy.voicecmmmanddemo.util.JsonParser;
 
 public class MainActivityActivity extends AppCompatActivity {
     // 语音唤醒对象
@@ -65,10 +72,12 @@ public class MainActivityActivity extends AppCompatActivity {
         }
         SpeechUtility.createUtility(this, SpeechConstant.APPID +"=5b0eadc9");
         setWakeup();
+        setIat();
     }
 
     private String getResource() {
         final String resPath = ResourceUtil.generateResourcePath(this, ResourceUtil.RESOURCE_TYPE.assets, "ivw/"+getString(R.string.app_id)+".jet");
+//        final String resPath = ResourceUtil.generateResourcePath(this, ResourceUtil.RESOURCE_TYPE.assets, "asr/common.jet");
         Log.e( "Demo", "resPath: "+resPath );
         return resPath;
     }
@@ -95,13 +104,14 @@ public class MainActivityActivity extends AppCompatActivity {
             mIvw.setParameter( SpeechConstant.IVW_AUDIO_PATH, Environment.getExternalStorageDirectory().getPath()+"/msc/ivw.wav" );
             mIvw.setParameter( SpeechConstant.AUDIO_FORMAT, "wav" );
             // 如有需要，设置 NOTIFY_RECORD_DATA 以实时通过 onEvent 返回录音音频流字节
-            //mIvw.setParameter( SpeechConstant.NOTIFY_RECORD_DATA, "1" );
+            mIvw.setParameter( SpeechConstant.NOTIFY_RECORD_DATA, "1" );
 
             // 启动唤醒
             mIvw.startListening(mWakeuperListener);
         }
     }
-    
+
+    ////////// wakeup //////////
     // 唤醒结果内容
     private String resultString;
     private WakeuperListener mWakeuperListener = new WakeuperListener() {
@@ -150,8 +160,36 @@ public class MainActivityActivity extends AppCompatActivity {
         }
 
         @Override
-        public void onEvent(int i, int i1, int i2, Bundle bundle) {
+        public void onEvent(int eventType, int i1, int i2, Bundle obj) {
+            switch( eventType ){
+                // EVENT_RECORD_DATA 事件仅在 NOTIFY_RECORD_DATA 参数值为 真 时返回
+                case SpeechEvent.EVENT_RECORD_DATA:
+                     audio = obj.getByteArray( SpeechEvent.KEY_EVENT_RECORD_DATA );
+//                    Log.i( TAG, "ivw audio length: "+audio.length );
+                    if(!isLoading){
+                        new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                isLoading = true;
+                                if(!mIat.isListening()){
+                                    mIat.startListening(mRecognizerListener);
+                                }
+                                mIat.writeAudio(audio, 0, audio.length);
+                                try {
+                                    Thread.sleep(500);
+                                } catch (InterruptedException e) {
+                                    e.printStackTrace();
+                                }
+                                mIat.stopListening();
+                                isLoading = false;
+                            }
+                        }
+                        );
+                    }
 
+//                    mIat.stopListening();
+                    break;
+            }
         }
 
         @Override
@@ -166,4 +204,127 @@ public class MainActivityActivity extends AppCompatActivity {
 
     };
 
+    ///////// wakeup //////////
+
+    boolean isLoading = false;
+    byte[] audio;
+    //////// speech ///////////
+    private boolean mTranslateEnable = false;
+    // 语音听写对象
+    private SpeechRecognizer mIat;
+    int ret = 0; // 函数调用返回值
+    private void setIat(){
+        // 使用SpeechRecognizer对象，可根据回调消息自定义界面；
+        mIat = SpeechRecognizer.createRecognizer(this, mInitListener);
+        mIat.setParameter(SpeechConstant.AUDIO_SOURCE, "-1");
+        // 也可以像以下这样直接设置音频文件路径识别（要求设置文件在sdcard上的全路径）：
+        // mIat.setParameter(SpeechConstant.AUDIO_SOURCE, "-2");
+        // mIat.setParameter(SpeechConstant.ASR_SOURCE_PATH, "sdcard/XXX/XXX.pcm");
+        ret = mIat.startListening(mRecognizerListener);
+    }
+
+    /**
+     * 听写监听器。
+     */
+    private RecognizerListener mRecognizerListener = new RecognizerListener() {
+
+        @Override
+        public void onBeginOfSpeech() {
+            // 此回调表示：sdk内部录音机已经准备好了，用户可以开始语音输入
+            showTip("开始说话");
+        }
+
+        @Override
+        public void onError(SpeechError error) {
+            // Tips：
+            // 错误码：10118(您没有说话)，可能是录音机权限被禁，需要提示用户打开应用的录音权限。
+            if(mTranslateEnable && error.getErrorCode() == 14002) {
+                showTip( error.getPlainDescription(true)+"\n请确认是否已开通翻译功能" );
+            } else {
+                showTip(error.getPlainDescription(true));
+            }
+        }
+
+        @Override
+        public void onEndOfSpeech() {
+            // 此回调表示：检测到了语音的尾端点，已经进入识别过程，不再接受语音输入
+            showTip("结束说话");
+        }
+
+        @Override
+        public void onResult(RecognizerResult results, boolean isLast) {
+            Log.d(TAG, results.getResultString());
+            if( mTranslateEnable ){
+                printTransResult( results );
+            }else{
+                printResult(results);
+            }
+                showTip(resultString + " continue ");
+            if (isLast) {
+                // TODO 最后的结果
+                showTip(resultString);
+            }
+        }
+
+        @Override
+        public void onVolumeChanged(int volume, byte[] data) {
+            showTip("当前正在说话，音量大小：" + volume);
+            Log.d(TAG, "返回音频数据：" + data.length);
+
+        }
+
+        @Override
+        public void onEvent(int eventType, int arg1, int arg2, Bundle obj) {
+            // 以下代码用于获取与云端的会话id，当业务出错时将会话id提供给技术支持人员，可用于查询会话日志，定位出错原因
+            // 若使用本地能力，会话id为null
+            //	if (SpeechEvent.EVENT_SESSION_ID == eventType) {
+            //		String sid = obj.getString(SpeechEvent.KEY_EVENT_SESSION_ID);
+            //		Log.d(TAG, "session id =" + sid);
+            //	}
+        }
+    };
+
+    /**
+     * 初始化监听器。
+     */
+    private InitListener mInitListener = new InitListener() {
+
+        @Override
+        public void onInit(int code) {
+            Log.d(TAG, "SpeechRecognizer init() code = " + code);
+            if (code != ErrorCode.SUCCESS) {
+                showTip("初始化失败，错误码：" + code);
+            }
+        }
+    };
+
+    private void showTip(String content){
+        Toast.makeText(this, content, Toast.LENGTH_SHORT).show();
+    }
+
+    private String TAG = "demo";
+    private void printResult (RecognizerResult content){
+        Log.e("result", content.getResultString() + "");
+    }
+
+    private void printTransResult (RecognizerResult results) {
+        String trans  = JsonParser.parseTransResult(results.getResultString(),"dst");
+        String oris = JsonParser.parseTransResult(results.getResultString(),"src");
+
+        if( TextUtils.isEmpty(trans)||TextUtils.isEmpty(oris) ){
+            showTip( "解析结果失败，请确认是否已开通翻译功能。" );
+        }else{
+            showTip( "原始语言:\n"+oris+"\n目标语言:\n"+trans );
+        }
+
+    }
+    /////// speech ///////////
+
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mIat.stopListening();
+        mIvw.stopListening();
+    }
 }
