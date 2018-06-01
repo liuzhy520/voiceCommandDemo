@@ -1,20 +1,29 @@
 package liuzhy.voicecmmmanddemo;
 
+import android.Manifest;
+import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Environment;
 import android.os.IBinder;
+import android.os.PowerManager;
 import android.os.RemoteException;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.util.Log;
 import android.widget.Toast;
 
 import com.iflytek.cloud.ErrorCode;
+import com.iflytek.cloud.RequestListener;
 import com.iflytek.cloud.SpeechConstant;
 import com.iflytek.cloud.SpeechError;
 import com.iflytek.cloud.SpeechEvent;
 import com.iflytek.cloud.SpeechUtility;
 import com.iflytek.cloud.VoiceWakeuper;
+import com.iflytek.cloud.util.FileDownloadListener;
 import com.iflytek.cloud.util.ResourceUtil;
 import com.iflytek.cloud.WakeuperListener;
 import com.iflytek.speech.WakeuperResult;
@@ -22,6 +31,7 @@ import com.iflytek.speech.aidl.IWakeuper;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.json.JSONTokener;
 
 public class MainActivityActivity extends AppCompatActivity {
     // 语音唤醒对象
@@ -38,8 +48,29 @@ public class MainActivityActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main_activity);
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                int permission = ActivityCompat.checkSelfPermission(this,
+                        Manifest.permission.WRITE_EXTERNAL_STORAGE);
+                if(permission!= PackageManager.PERMISSION_GRANTED) {
+                    ActivityCompat.requestPermissions(this,new String[] {
+                            Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                            Manifest.permission.LOCATION_HARDWARE,Manifest.permission.READ_PHONE_STATE,
+                            Manifest.permission.WRITE_SETTINGS,Manifest.permission.READ_EXTERNAL_STORAGE,
+                            Manifest.permission.RECORD_AUDIO,Manifest.permission.READ_CONTACTS},0x0010);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         SpeechUtility.createUtility(this, SpeechConstant.APPID +"=5b0eadc9");
         setWakeup();
+    }
+
+    private String getResource() {
+        final String resPath = ResourceUtil.generateResourcePath(this, ResourceUtil.RESOURCE_TYPE.assets, "ivw/"+getString(R.string.app_id)+".jet");
+        Log.e( "Demo", "resPath: "+resPath );
+        return resPath;
     }
 
     private void setWakeup(){
@@ -70,12 +101,7 @@ public class MainActivityActivity extends AppCompatActivity {
             mIvw.startListening(mWakeuperListener);
         }
     }
-
-    private String getResource() {
-        final String resPath = ResourceUtil.generateResourcePath(this, ResourceUtil.RESOURCE_TYPE.assets, "ivw/"+getString(R.string.app_id)+".jet");
-        Log.d( "Demo", "resPath: "+resPath );
-        return resPath;
-    }
+    
     // 唤醒结果内容
     private String resultString;
     private WakeuperListener mWakeuperListener = new WakeuperListener() {
@@ -103,11 +129,17 @@ public class MainActivityActivity extends AppCompatActivity {
                 buffer.append("\n");
                 buffer.append("【尾端点】" + object.optString("eos"));
                 resultString = buffer.toString();
+
+
             } catch (JSONException e) {
                 resultString = "结果解析出错";
                 e.printStackTrace();
             }
-            Toast.makeText(MainActivityActivity.this, resultString, Toast.LENGTH_SHORT).show();
+            Toast.makeText(MainActivityActivity.this, "蕉迟但到！", Toast.LENGTH_SHORT).show();
+            //Toast.makeText(MainActivityActivity.this, resultString, Toast.LENGTH_SHORT).show();
+            PowerManager pm = (PowerManager) getApplicationContext().getSystemService(Context.POWER_SERVICE);
+            PowerManager.WakeLock wakeLock = pm.newWakeLock((PowerManager.SCREEN_BRIGHT_WAKE_LOCK | PowerManager.FULL_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP), "TAG");
+            wakeLock.acquire();
 
         }
 
@@ -133,4 +165,5 @@ public class MainActivityActivity extends AppCompatActivity {
         }
 
     };
+
 }
