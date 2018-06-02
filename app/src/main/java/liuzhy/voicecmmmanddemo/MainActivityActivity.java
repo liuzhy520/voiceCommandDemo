@@ -72,7 +72,7 @@ public class MainActivityActivity extends AppCompatActivity {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        SpeechUtility.createUtility(this, SpeechConstant.APPID +"=5b0eadc9");
+        SpeechUtility.createUtility(this, SpeechConstant.APPID +"=5b12269d");
         setWakeup();
         setIat();
     }
