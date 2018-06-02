@@ -15,6 +15,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.iflytek.cloud.ErrorCode;
@@ -139,13 +140,14 @@ public class MainActivityActivity extends AppCompatActivity {
                 buffer.append("\n");
                 buffer.append("【尾端点】" + object.optString("eos"));
                 resultString = buffer.toString();
-
+                setSwitches(object.optString("id"));
 
             } catch (JSONException e) {
                 resultString = "结果解析出错";
                 e.printStackTrace();
             }
-            Toast.makeText(MainActivityActivity.this, "蕉迟但到！", Toast.LENGTH_SHORT).show();
+
+//            Toast.makeText(MainActivityActivity.this, "蕉迟但到！", Toast.LENGTH_SHORT).show();
             //Toast.makeText(MainActivityActivity.this, resultString, Toast.LENGTH_SHORT).show();
             PowerManager pm = (PowerManager) getApplicationContext().getSystemService(Context.POWER_SERVICE);
             PowerManager.WakeLock wakeLock = pm.newWakeLock((PowerManager.SCREEN_BRIGHT_WAKE_LOCK | PowerManager.FULL_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP), "TAG");
@@ -204,6 +206,44 @@ public class MainActivityActivity extends AppCompatActivity {
         }
 
     };
+
+    private void setSwitches(String id){
+        TextView light = findViewById(R.id.light_tv);
+        TextView ac = findViewById(R.id.ac_tv);
+        switch (id){
+            case "4":
+                showTip("蕉迟但到！");
+                break;
+            case "2":
+                showTip("客厅开灯！");
+                light.setText("客厅主灯 \n on");
+                light.setTextColor(getColor(R.color._eeeeee));
+                light.setBackgroundColor(getColor(R.color.colorPrimary));
+                break;
+            case "0":
+                showTip("客厅关灯！");
+                light.setText("客厅主灯 \n off");
+                light.setTextColor(getColor(R.color.colorPrimary));
+                light.setBackgroundColor(getColor(R.color._eeeeee));
+                break;
+            case "3":
+                showTip("客厅开风扇！");
+                ac.setText("客厅风扇 \n on");
+                ac.setTextColor(getColor(R.color._eeeeee));
+                ac.setBackgroundColor(getColor(R.color.colorPrimary));
+                break;
+            case "1":
+                showTip("客厅关风扇！");
+                ac.setText("客厅风扇 \n off");
+                ac.setTextColor(getColor(R.color.colorPrimary));
+                ac.setBackgroundColor(getColor(R.color._eeeeee));
+                break;
+
+
+
+
+        }
+    }
 
     ///////// wakeup //////////
 

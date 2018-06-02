@@ -19,26 +19,57 @@
         android:padding="5dp"
         >
         <TextView
+            android:id="@+id/light_tv"
             android:layout_width="150dp"
             android:layout_height="100dp"
-            android:text="客厅主灯 \n on"
+            android:text="客厅主灯 \n off"
             android:textAlignment="center"
             android:gravity="center"
             android:layout_marginRight="2dp"
             android:background="@color/_eeeeee"
+            android:textColor="@color/colorPrimary"
             />
 
-        <TextView
-            android:layout_width="150dp"
-            android:layout_height="100dp"
-            android:text="客厅副灯 \n on"
-            android:textAlignment="center"
-            android:gravity="center"
-            android:layout_marginLeft="2dp"
-            android:background="@color/_eeeeee"
-            />
+        <!--<TextView-->
+            <!--android:layout_width="150dp"-->
+            <!--android:layout_height="100dp"-->
+            <!--android:text="客厅副灯 \n on"-->
+            <!--android:textAlignment="center"-->
+            <!--android:gravity="center"-->
+            <!--android:layout_marginLeft="2dp"-->
+            <!--android:background="@color/_eeeeee"-->
+            <!--/>-->
 
     </LinearLayout>
+
+    <!--<LinearLayout-->
+        <!--android:layout_width="wrap_content"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:orientation="horizontal"-->
+        <!--android:gravity="center"-->
+        <!--android:padding="5dp"-->
+        <!--&gt;-->
+        <!--<TextView-->
+            <!--android:layout_width="150dp"-->
+            <!--android:layout_height="100dp"-->
+            <!--android:text="客厅地灯 \n on"-->
+            <!--android:textAlignment="center"-->
+            <!--android:gravity="center"-->
+            <!--android:layout_marginRight="2dp"-->
+            <!--android:background="@color/_eeeeee"-->
+            <!--/>-->
+
+        <!--<TextView-->
+            <!--android:layout_width="150dp"-->
+            <!--android:layout_height="100dp"-->
+            <!--android:text="客厅电视 \n on"-->
+            <!--android:textAlignment="center"-->
+            <!--android:gravity="center"-->
+            <!--android:layout_marginLeft="2dp"-->
+            <!--android:background="@color/_eeeeee"-->
+            <!--/>-->
+
+    <!--</LinearLayout>-->
 
     <LinearLayout
         android:layout_width="wrap_content"
@@ -48,53 +79,26 @@
         android:padding="5dp"
         >
         <TextView
+            android:id="@+id/ac_tv"
             android:layout_width="150dp"
             android:layout_height="100dp"
-            android:text="客厅地灯 \n on"
+            android:text="客厅风扇 \n off"
             android:textAlignment="center"
             android:gravity="center"
             android:layout_marginRight="2dp"
             android:background="@color/_eeeeee"
+            android:textColor="@color/colorPrimary"
             />
 
-        <TextView
-            android:layout_width="150dp"
-            android:layout_height="100dp"
-            android:text="客厅电视 \n on"
-            android:textAlignment="center"
-            android:gravity="center"
-            android:layout_marginLeft="2dp"
-            android:background="@color/_eeeeee"
-            />
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center"
-        android:padding="5dp"
-        >
-        <TextView
-            android:layout_width="150dp"
-            android:layout_height="100dp"
-            android:text="客厅空调 \n on"
-            android:textAlignment="center"
-            android:gravity="center"
-            android:layout_marginRight="2dp"
-            android:background="@color/_eeeeee"
-            />
-
-        <TextView
-            android:layout_width="150dp"
-            android:layout_height="100dp"
-            android:text="客厅风扇 \n on"
-            android:textAlignment="center"
-            android:gravity="center"
-            android:layout_marginLeft="2dp"
-            android:background="@color/_eeeeee"
-            />
+        <!--<TextView-->
+            <!--android:layout_width="150dp"-->
+            <!--android:layout_height="100dp"-->
+            <!--android:text="客厅风扇 \n on"-->
+            <!--android:textAlignment="center"-->
+            <!--android:gravity="center"-->
+            <!--android:layout_marginLeft="2dp"-->
+            <!--android:background="@color/_eeeeee"-->
+            <!--/>-->
 
     </LinearLayout>
 
