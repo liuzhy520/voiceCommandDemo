@@ -34,6 +34,7 @@ import com.iflytek.cloud.util.ResourceUtil;
 import com.iflytek.cloud.WakeuperListener;
 import com.iflytek.speech.WakeuperResult;
 import com.iflytek.speech.aidl.IWakeuper;
+import com.iflytek.sunflower.FlowerCollector;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -367,5 +368,21 @@ public class MainActivityActivity extends AppCompatActivity {
         super.onDestroy();
         mIat.stopListening();
         mIvw.stopListening();
+    }
+
+    @Override
+    protected void onResume() {
+        // 开放统计 移动数据统计分析
+        FlowerCollector.onResume(this);
+        FlowerCollector.onPageStart(TAG);
+        super.onResume();
+    }
+
+    @Override
+    protected void onPause() {
+        // 开放统计 移动数据统计分析
+        FlowerCollector.onPageEnd(TAG);
+        FlowerCollector.onPause(this);
+        super.onPause();
     }
 }
