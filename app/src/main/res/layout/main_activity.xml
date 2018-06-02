@@ -102,5 +102,12 @@
 
     </LinearLayout>
 
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:text="控制指令\n 1 - 客厅开灯； 2 - 客厅关灯； \n 1 - 客厅开风扇； 2 - 客厅关风扇； "
+        />
+
 
 </LinearLayout>
